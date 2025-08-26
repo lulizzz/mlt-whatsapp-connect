@@ -21,7 +21,7 @@ export async function DELETE(
         'Accept': 'application/json',
         'token': token,
       },
-      // @ts-ignore
+      // @ts-expect-error Node.js https agent not typed in fetch
       agent: httpsAgent,
     })
 
@@ -61,7 +61,7 @@ export async function POST(
           'Accept': 'application/json',
           'token': token,
         },
-        // @ts-ignore
+        // @ts-expect-error Node.js https agent not typed in fetch
         agent: httpsAgent,
       })
 

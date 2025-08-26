@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { QrCode, Smartphone, Wifi, WifiOff, RefreshCw, CheckCircle } from 'lucide-react'
-import { WhatsAppApiService, WhatsAppInstance, WhatsAppApiResponse } from '@/lib/whatsapp-api'
+import { QrCode, Smartphone, Wifi, RefreshCw, CheckCircle } from 'lucide-react'
+import { WhatsAppApiService, WhatsAppInstance } from '@/lib/whatsapp-api'
 import Image from 'next/image'
 
 interface InstanceWithConnection extends WhatsAppInstance {
@@ -84,7 +84,7 @@ export function ClientWhatsAppConnect() {
   }
 
   // Check connection status
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     if (!instance || step === 'connected') return
 
     try {
@@ -107,7 +107,7 @@ export function ClientWhatsAppConnect() {
     } catch (error) {
       console.error('Error checking status:', error)
     }
-  }
+  }, [instance, step, apiService])
 
   // Auto-check status when QR is generated
   useEffect(() => {
@@ -115,7 +115,7 @@ export function ClientWhatsAppConnect() {
       const interval = setInterval(checkStatus, 3000) // Check every 3 seconds
       return () => clearInterval(interval)
     }
-  }, [step, instance])
+  }, [step, instance, checkStatus])
 
   // Extract phone number from JID
   const getPhoneNumber = (jid: string | null) => {

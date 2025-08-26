@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         'admintoken': ADMIN_TOKEN,
       },
       body: JSON.stringify(body),
-      // @ts-ignore
+      // @ts-expect-error Node.js https agent not typed in fetch
       agent: httpsAgent,
     })
 

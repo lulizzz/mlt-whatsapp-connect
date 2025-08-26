@@ -24,7 +24,7 @@ export async function POST(
         'token': token,
       },
       body: JSON.stringify(body),
-      // @ts-ignore
+      // @ts-expect-error Node.js https agent not typed in fetch
       agent: httpsAgent,
     })
 

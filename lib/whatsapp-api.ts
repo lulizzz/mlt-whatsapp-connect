@@ -141,5 +141,5 @@ export function createWhatsAppApiService() {
     throw new Error('WHATSAPP_ADMIN_TOKEN environment variable is not set')
   }
 
-  return new WhatsAppApiService(adminToken)
+  return new WhatsAppApiService()
 }

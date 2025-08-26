@@ -21,7 +21,7 @@ export async function GET(
         'Accept': 'application/json',
         'token': token,
       },
-      // @ts-ignore
+      // @ts-expect-error Node.js https agent not typed in fetch
       agent: httpsAgent,
     })
 

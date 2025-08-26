@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { QrCode, Smartphone, Wifi, WifiOff, RefreshCw, Plus, Trash2 } from 'lucide-react'
-import { WhatsAppApiService, WhatsAppInstance, WhatsAppApiResponse } from '@/lib/whatsapp-api'
+import { WhatsAppApiService, WhatsAppInstance } from '@/lib/whatsapp-api'
 import Image from 'next/image'
 
 interface InstanceWithConnection extends WhatsAppInstance {
@@ -17,7 +17,6 @@ interface InstanceWithConnection extends WhatsAppInstance {
 
 export function WhatsAppConnect() {
   const [instances, setInstances] = useState<InstanceWithConnection[]>([])
-  const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newInstanceName, setNewInstanceName] = useState('')
   const [selectedInstancePhone, setSelectedInstancePhone] = useState('')
@@ -77,7 +76,7 @@ export function WhatsAppConnect() {
   }
 
   // Refresh instance status
-  const refreshInstanceStatus = async (instanceToken: string) => {
+  const refreshInstanceStatus = useCallback(async (instanceToken: string) => {
     try {
       const response = await apiService.getInstanceStatus(instanceToken)
       
@@ -89,7 +88,7 @@ export function WhatsAppConnect() {
     } catch (error) {
       console.error('Error refreshing instance status:', error)
     }
-  }
+  }, [apiService])
 
   // Delete instance
   const deleteInstance = async (instanceToken: string) => {
@@ -115,7 +114,7 @@ export function WhatsAppConnect() {
     }, 5000) // Refresh every 5 seconds for connecting instances
 
     return () => clearInterval(interval)
-  }, [instances])
+  }, [instances, refreshInstanceStatus])
 
   const getStatusBadge = (instance: InstanceWithConnection) => {
     if (instance.connected && instance.loggedIn) {
