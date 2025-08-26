@@ -22,7 +22,7 @@ export function ClientWhatsAppConnect() {
   const [connecting, setConnecting] = useState(false)
   const [instanceName, setInstanceName] = useState('')
   const [step, setStep] = useState<'initial' | 'created' | 'qr_generated' | 'connected' | 'error'>('initial')
-  const [connectionFeedback, setConnectionFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null)
+  const [connectionFeedback, setConnectionFeedback] = useState<{type: 'success' | 'error' | 'connecting', message: string} | null>(null)
 
   // Initialize API service
   const apiService = new WhatsAppApiService()
@@ -64,6 +64,7 @@ export function ClientWhatsAppConnect() {
     if (!instance) return
     
     setConnecting(true)
+    setConnectionFeedback(null) // Limpa feedback anterior
     try {
       const response = await apiService.connectInstance(instance.token, {})
       
@@ -101,7 +102,7 @@ export function ClientWhatsAppConnect() {
 
       setInstance(updatedInstance)
 
-      // Se conectou, mover para o step final
+      // Se conectou completamente, mover para o step final
       if (response.connected && response.loggedIn && response.jid) {
         setConnectionFeedback({
           type: 'success',
@@ -111,12 +112,19 @@ export function ClientWhatsAppConnect() {
           setStep('connected')
           setConnectionFeedback(null)
         }, 2000) // Mostra feedback por 2 segundos
+      } 
+      // Se está em processo de conexão (connecting)
+      else if (response.instance.status === 'connecting') {
+        setConnectionFeedback({
+          type: 'connecting',
+          message: '📱 Acompanhe o status no seu celular'
+        })
       }
     } catch (error) {
       console.error('Error checking status:', error)
       setConnectionFeedback({
         type: 'error', 
-        message: '❌ Erro ao verificar conexão. Tente gerar um novo QR Code.'
+        message: '❌ Falha na conexão. Gere um novo QR Code e tente novamente.'
       })
     }
   }, [instance, step, apiService])
@@ -340,18 +348,62 @@ export function ClientWhatsAppConnect() {
 
 {/* Connection Feedback */}
                 {connectionFeedback ? (
-                  <div className={`rounded-lg p-4 text-center animate-bounce ${
+                  <div className={`rounded-lg p-6 text-center border-2 ${
                     connectionFeedback.type === 'success' 
-                      ? 'bg-green-50 border border-green-200' 
-                      : 'bg-red-50 border border-red-200'
+                      ? 'bg-green-50 border-green-300 animate-bounce' 
+                      : connectionFeedback.type === 'connecting'
+                      ? 'bg-amber-50 border-amber-300 animate-pulse'
+                      : 'bg-red-50 border-red-300 animate-bounce'
                   }`}>
-                    <p className={`text-sm font-medium ${
+                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+                      connectionFeedback.type === 'success' 
+                        ? 'bg-green-100' 
+                        : connectionFeedback.type === 'connecting'
+                        ? 'bg-amber-100'
+                        : 'bg-red-100'
+                    }`}>
+                      {connectionFeedback.type === 'success' && <span className="text-2xl">✅</span>}
+                      {connectionFeedback.type === 'connecting' && <span className="text-2xl">📱</span>}
+                      {connectionFeedback.type === 'error' && <span className="text-2xl">❌</span>}
+                    </div>
+                    <p className={`text-base font-bold mb-2 ${
                       connectionFeedback.type === 'success' 
                         ? 'text-green-800' 
+                        : connectionFeedback.type === 'connecting'
+                        ? 'text-amber-800'
                         : 'text-red-800'
                     }`}>
                       {connectionFeedback.message}
                     </p>
+                    {connectionFeedback.type === 'connecting' && (
+                      <p className="text-sm text-amber-700">
+                        Depois de escanear, aguarde a confirmação aparecer no seu celular
+                      </p>
+                    )}
+                    {connectionFeedback.type === 'error' && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-red-700 font-medium">
+                          ⚠️ Não foi possível estabelecer a conexão
+                        </p>
+                        <Button
+                          onClick={generateQRCode}
+                          disabled={connecting}
+                          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 text-sm rounded-lg"
+                        >
+                          {connecting ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Gerando...
+                            </>
+                          ) : (
+                            <>
+                              <QrCode className="w-4 h-4 mr-2" />
+                              Gerar Novo QR Code
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-blue-50 rounded-lg p-4 text-center">
@@ -359,7 +411,7 @@ export function ClientWhatsAppConnect() {
                       ⏱️ Aguardando conexão...
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
-                      O QR Code será atualizado automaticamente quando você se conectar
+                      O status será atualizado automaticamente quando você conectar
                     </p>
                   </div>
                 )}
