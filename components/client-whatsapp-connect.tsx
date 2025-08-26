@@ -21,7 +21,8 @@ export function ClientWhatsAppConnect() {
   const [creating, setCreating] = useState(false)
   const [connecting, setConnecting] = useState(false)
   const [instanceName, setInstanceName] = useState('')
-  const [step, setStep] = useState<'initial' | 'created' | 'qr_generated' | 'connected'>('initial')
+  const [step, setStep] = useState<'initial' | 'created' | 'qr_generated' | 'connected' | 'error'>('initial')
+  const [connectionFeedback, setConnectionFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null)
 
   // Initialize API service
   const apiService = new WhatsAppApiService()
@@ -102,10 +103,21 @@ export function ClientWhatsAppConnect() {
 
       // Se conectou, mover para o step final
       if (response.connected && response.loggedIn && response.jid) {
-        setStep('connected')
+        setConnectionFeedback({
+          type: 'success',
+          message: '✅ WhatsApp conectado com sucesso!'
+        })
+        setTimeout(() => {
+          setStep('connected')
+          setConnectionFeedback(null)
+        }, 2000) // Mostra feedback por 2 segundos
       }
     } catch (error) {
       console.error('Error checking status:', error)
+      setConnectionFeedback({
+        type: 'error', 
+        message: '❌ Erro ao verificar conexão. Tente gerar um novo QR Code.'
+      })
     }
   }, [instance, step, apiService])
 
@@ -152,9 +164,27 @@ export function ClientWhatsAppConnect() {
                   <h2 className="text-2xl font-semibold text-gray-800">
                     Vamos começar!
                   </h2>
-                  <p className="text-gray-600">
-                    Digite um nome para identificar sua instância e conecte-se aos sistemas da MLT.
-                  </p>
+                  <div className="text-gray-600 max-w-md mx-auto">
+                    <p className="mb-4">É muito simples conectar seu WhatsApp:</p>
+                    <ul className="text-sm space-y-2 text-left">
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Escolha um nome para sua instância</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Gere o QR Code</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Escaneie com seu WhatsApp</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-500">✓</span>
+                        <span>Pronto! Sistema conectado</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
                 
                 <div className="max-w-md mx-auto space-y-4">
@@ -206,18 +236,17 @@ export function ClientWhatsAppConnect() {
                   <span className="text-lg font-medium text-green-600">Instância criada com sucesso!</span>
                 </div>
                 
-                <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Nome da Instância:</p>
-                    <p className="text-lg font-semibold text-gray-800">
-                      {instance.name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">ID da Instância:</p>
-                    <p className="font-mono text-sm bg-white px-3 py-2 rounded border">
-                      {instance.id}
-                    </p>
+                <div className="bg-green-50 rounded-lg p-6 mb-6 border border-green-200">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                      <Smartphone className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 mb-1">Sua instância:</p>
+                      <p className="text-xl font-bold text-green-700">
+                        {instance.name}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -264,12 +293,34 @@ export function ClientWhatsAppConnect() {
                       Conectando...
                     </Badge>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
                     Escaneie o QR Code
                   </h3>
-                  <p className="text-gray-600 text-sm mb-6">
-                    Abra o WhatsApp no seu celular, vá em <strong>Configurações {'>'} Dispositivos conectados {'>'} Conectar dispositivo</strong> e escaneie o código abaixo.
-                  </p>
+                  <div className="text-gray-600 text-sm mb-6 text-left max-w-md mx-auto">
+                    <p className="mb-3 text-center">Siga estes passos no seu WhatsApp:</p>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                        <span>Abra o <strong>WhatsApp</strong> no seu celular</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                        <span>Vá em <strong>Configurações</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                        <span>Toque em <strong>Dispositivos conectados</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="bg-blue-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                        <span>Selecione <strong>Conectar dispositivo</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="bg-green-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">5</span>
+                        <span>Escaneie o código abaixo</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* QR Code Display */}
@@ -287,14 +338,31 @@ export function ClientWhatsAppConnect() {
                   </div>
                 )}
 
-                <div className="bg-blue-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-blue-800 font-medium">
-                    ⏱️ Aguardando conexão...
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    O QR Code será atualizado automaticamente quando você se conectar
-                  </p>
-                </div>
+{/* Connection Feedback */}
+                {connectionFeedback ? (
+                  <div className={`rounded-lg p-4 text-center animate-bounce ${
+                    connectionFeedback.type === 'success' 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-red-50 border border-red-200'
+                  }`}>
+                    <p className={`text-sm font-medium ${
+                      connectionFeedback.type === 'success' 
+                        ? 'text-green-800' 
+                        : 'text-red-800'
+                    }`}>
+                      {connectionFeedback.message}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-blue-800 font-medium">
+                      ⏱️ Aguardando conexão...
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      O QR Code será atualizado automaticamente quando você se conectar
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -319,34 +387,28 @@ export function ClientWhatsAppConnect() {
                 </div>
 
                 {/* Connection Details */}
-                <div className="bg-green-50 rounded-xl p-6 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                    <div className="bg-white rounded-lg p-4 border border-green-200">
-                      <p className="text-sm text-gray-600 mb-1">Número conectado:</p>
-                      <p className="font-mono text-lg font-semibold text-green-600">
-                        +{getPhoneNumber(instance.jid)}
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-green-200">
-                      <p className="text-sm text-gray-600 mb-1">Status:</p>
-                      <p className="text-lg font-semibold text-green-600">
-                        Conectado aos sistemas MLT
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                    <div className="bg-white rounded-lg p-4 border border-green-200">
-                      <p className="text-sm text-gray-600 mb-1">Nome da Instância:</p>
-                      <p className="text-lg font-semibold text-gray-800">
-                        {instance.name}
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-green-200">
-                      <p className="text-sm text-gray-600 mb-1">ID da Instância:</p>
-                      <p className="font-mono text-sm text-gray-800">
-                        {instance.id}
-                      </p>
+                <div className="bg-green-50 rounded-xl p-6 space-y-6">
+                  <div className="text-center">
+                    <h4 className="text-lg font-semibold text-green-700 mb-4">Detalhes da Conexão</h4>
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <p className="text-sm text-gray-600 mb-2">📱 WhatsApp conectado:</p>
+                        <p className="font-mono text-xl font-bold text-green-600">
+                          +{getPhoneNumber(instance.jid)}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <p className="text-sm text-gray-600 mb-2">🏢 Instância:</p>
+                        <p className="text-lg font-semibold text-gray-800">
+                          {instance.name}
+                        </p>
+                      </div>
+                      <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+                        <p className="text-sm opacity-90 mb-1">Status:</p>
+                        <p className="text-lg font-bold">
+                          ✅ Conectado aos sistemas MLT
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
