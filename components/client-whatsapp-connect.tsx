@@ -348,56 +348,51 @@ export function ClientWhatsAppConnect() {
 
 {/* Connection Feedback */}
                 {connectionFeedback ? (
-                  <div className={`rounded-lg p-6 text-center border-2 ${
+                  <div className={`rounded-lg p-4 text-center border ${
                     connectionFeedback.type === 'success' 
-                      ? 'bg-green-50 border-green-300 animate-bounce' 
+                      ? 'bg-green-50 border-green-200' 
                       : connectionFeedback.type === 'connecting'
-                      ? 'bg-amber-50 border-amber-300 animate-pulse'
-                      : 'bg-red-50 border-red-300 animate-bounce'
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-red-50 border-red-200'
                   }`}>
-                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+                    <p className={`text-sm mb-2 ${
                       connectionFeedback.type === 'success' 
-                        ? 'bg-green-100' 
+                        ? 'text-green-700' 
                         : connectionFeedback.type === 'connecting'
-                        ? 'bg-amber-100'
-                        : 'bg-red-100'
-                    }`}>
-                      {connectionFeedback.type === 'success' && <span className="text-2xl">✅</span>}
-                      {connectionFeedback.type === 'connecting' && <span className="text-2xl">📱</span>}
-                      {connectionFeedback.type === 'error' && <span className="text-2xl">❌</span>}
-                    </div>
-                    <p className={`text-base font-bold mb-2 ${
-                      connectionFeedback.type === 'success' 
-                        ? 'text-green-800' 
-                        : connectionFeedback.type === 'connecting'
-                        ? 'text-amber-800'
-                        : 'text-red-800'
+                        ? 'text-blue-700'
+                        : 'text-red-700'
                     }`}>
                       {connectionFeedback.message}
                     </p>
                     {connectionFeedback.type === 'connecting' && (
-                      <p className="text-sm text-amber-700">
-                        Depois de escanear, aguarde a confirmação aparecer no seu celular
+                      <p className="text-xs text-blue-600">
+                        Aguarde a confirmação no seu celular após escanear
+                      </p>
+                    )}
+                    {connectionFeedback.type === 'success' && (
+                      <p className="text-xs text-green-600">
+                        Você pode fechar esta página agora
                       </p>
                     )}
                     {connectionFeedback.type === 'error' && (
-                      <div className="space-y-3">
-                        <p className="text-sm text-red-700 font-medium">
-                          ⚠️ Não foi possível estabelecer a conexão
+                      <div className="space-y-2">
+                        <p className="text-xs text-red-600">
+                          Falha na conexão
                         </p>
                         <Button
                           onClick={generateQRCode}
                           disabled={connecting}
-                          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 text-sm rounded-lg"
+                          size="sm"
+                          className="bg-gray-600 hover:bg-gray-700 text-white text-xs px-4 py-1"
                         >
                           {connecting ? (
                             <>
-                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              <RefreshCw className="w-3 h-3 mr-1" />
                               Gerando...
                             </>
                           ) : (
                             <>
-                              <QrCode className="w-4 h-4 mr-2" />
+                              <QrCode className="w-3 h-3 mr-1" />
                               Gerar Novo QR Code
                             </>
                           )}
@@ -407,11 +402,11 @@ export function ClientWhatsAppConnect() {
                   </div>
                 ) : (
                   <div className="bg-blue-50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-blue-800 font-medium">
-                      ⏱️ Aguardando conexão...
+                    <p className="text-sm text-blue-700">
+                      Aguardando conexão...
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
-                      O status será atualizado automaticamente quando você conectar
+                      O status será atualizado automaticamente
                     </p>
                   </div>
                 )}
