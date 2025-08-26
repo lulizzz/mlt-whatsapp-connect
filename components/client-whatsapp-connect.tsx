@@ -23,6 +23,8 @@ export function ClientWhatsAppConnect() {
   const [instanceName, setInstanceName] = useState('')
   const [step, setStep] = useState<'initial' | 'created' | 'qr_generated' | 'connected' | 'error'>('initial')
   const [connectionFeedback, setConnectionFeedback] = useState<{type: 'success' | 'error' | 'connecting', message: string} | null>(null)
+  const [countdown, setCountdown] = useState<number>(0)
+  const [canRetry, setCanRetry] = useState<boolean>(true)
 
   // Initialize API service
   const apiService = new WhatsAppApiService()
@@ -65,6 +67,8 @@ export function ClientWhatsAppConnect() {
     
     setConnecting(true)
     setConnectionFeedback(null) // Limpa feedback anterior
+    setCountdown(0) // Reset contador
+    setCanRetry(true) // Reset retry status
     try {
       const response = await apiService.connectInstance(instance.token, {})
       
@@ -119,6 +123,11 @@ export function ClientWhatsAppConnect() {
           type: 'connecting',
           message: '📱 Acompanhe o status no seu celular'
         })
+        // Iniciar contador regressivo se ainda não começou
+        if (countdown === 0 && canRetry) {
+          setCountdown(30)
+          setCanRetry(false)
+        }
       }
     } catch (error) {
       console.error('Error checking status:', error)
@@ -128,6 +137,18 @@ export function ClientWhatsAppConnect() {
       })
     }
   }, [instance, step, apiService])
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else if (countdown === 0 && !canRetry) {
+      setCanRetry(true)
+    }
+  }, [countdown, canRetry])
 
   // Auto-check status when QR is generated
   useEffect(() => {
@@ -408,6 +429,44 @@ export function ClientWhatsAppConnect() {
                     <p className="text-xs text-blue-600 mt-1">
                       O status será atualizado automaticamente
                     </p>
+                  </div>
+                )}
+
+                {/* Countdown and Retry Section - Show only when connecting feedback is active */}
+                {connectionFeedback?.type === 'connecting' && (
+                  <div className="mt-4 space-y-3 text-center">
+                    {countdown > 0 && (
+                      <p className="text-xs text-gray-400">
+                        Aguarde {countdown}s para tentar novamente
+                      </p>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-600">
+                        Deu problema? Gere um novo QR Code
+                      </p>
+                      <Button
+                        onClick={generateQRCode}
+                        disabled={connecting || !canRetry}
+                        size="sm"
+                        className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 text-white text-xs px-4 py-2"
+                      >
+                        {connecting ? (
+                          <>
+                            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                            Gerando...
+                          </>
+                        ) : (
+                          <>
+                            <QrCode className="w-3 h-3 mr-1" />
+                            Gerar Novo QR Code
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm font-medium text-gray-700">
+                        Se estiver carregando aguarde.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
